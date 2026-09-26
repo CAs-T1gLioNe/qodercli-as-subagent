@@ -3,7 +3,7 @@
 An MCP server that exposes the local **Qoder CN CLI** (`qoderclicn`) as a
 subagent, for Codex to delegate review and implementation work to.
 
-Built by copying `cc-as-subagent` and adapting it — the
+Built by copying [`cc-as-subagent`](https://github.com/CAs-T1gLioNe/cc-as-subagent) and adapting it — the
 two CLIs share most of their command surface, so the architecture carried over.
 **What did not carry over is isolation, and this server is weaker than the
 Claude Code one. Read the next two sections before using it.**
@@ -15,7 +15,7 @@ Claude Code one. Read the next two sections before using it.**
 > govern anything an MCP server goes on to spawn.
 >
 > **This CLI is missing three of the controls the other one has.** Compared with
-> `cc-as-subagent`:
+> [`cc-as-subagent`](https://github.com/CAs-T1gLioNe/cc-as-subagent):
 >
 > | | Claude Code | Qoder CN |
 > |---|---|---|
