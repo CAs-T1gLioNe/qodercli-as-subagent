@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Runtime state must never land in the repo. The server keeps job state under
+# %LOCALAPPDATA%; this is a backstop for local experiments only.
+.cc-as-subagent-state/
+*.log
+
+# Credentials
+.env
+.env.*
+*.pem

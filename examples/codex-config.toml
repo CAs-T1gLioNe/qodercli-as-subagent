@@ -1,0 +1,89 @@
+# Codex configuration for qoder-as-subagent.
+#
+# Append to ~/.codex/config.toml (or to a profile inside it).
+#
+# Key names below are from the Codex MCP documentation: `command`, `args`,
+# `env_vars`, the `[mcp_servers.<name>.env]` table, `enabled_tools`,
+# `disabled_tools`, `default_tools_approval_mode`, `startup_timeout_sec`,
+# `tool_timeout_sec`, and per-tool `approval_mode`.
+
+[mcp_servers.qoder-as-subagent]
+command = "node"
+# Absolute path to the built entry point. Keep it absolute: Codex launches the
+# server from its own working directory, not from yours.
+args = ["C:\\path\\to\\qoder-as-subagent\\dist\\index.js"]
+
+# ---------------------------------------------------------------------------
+# The one human checkpoint on this path.
+#
+# Codex's sandbox and permission profiles do NOT govern MCP servers, and they do
+# not govern the CLI this server spawns. Without this line nothing anywhere asks
+# a person before a subagent runs in your repository.
+#
+# This matters more here than it does for cc-as-subagent: this CLI has no way to
+# drop a workspace's AGENTS.md, skills, plugins or hooks, and no turn or spend
+# ceiling. The prompt is the only thing that stands between a hostile workspace
+# and your machine.
+#
+#   auto    - no prompt
+#   prompt  - ask before every call from this server
+#   writes  - ask only for tools not marked read-only
+#   approve - always ask
+# ---------------------------------------------------------------------------
+default_tools_approval_mode = "prompt"
+
+enabled_tools = ["qoder_run", "qoder_status", "qoder_reply", "qoder_cancel"]
+
+# ---------------------------------------------------------------------------
+# Timeouts.
+#
+# The server submits and returns immediately, so these can be modest even though
+# a run may take many minutes. Do not raise them hoping to make a long run
+# finish inside one call — poll instead.
+# ---------------------------------------------------------------------------
+startup_timeout_sec = 10
+tool_timeout_sec = 45
+
+# ---------------------------------------------------------------------------
+# Environment.
+#
+# The server drops everything except its own allowlist before spawning the CLI.
+# Only these variables reach it.
+# ---------------------------------------------------------------------------
+
+[mcp_servers.qoder-as-subagent.env]
+# The allowlist of directories a run may target. Path-delimiter separated
+# (`;` on Windows, `:` elsewhere). A workspace outside every root is refused.
+# When unset it defaults to the server's own working directory.
+QODER_AS_SUBAGENT_WORKSPACE_ROOTS = "C:\\code\\project-a;C:\\code\\project-b"
+
+# Where job state is kept. Defaults to %LOCALAPPDATA%\qoder-as-subagent, and is
+# separate from cc-as-subagent's — the two servers do not share a directory.
+# It must NOT be inside a workspace: the subagent's own `rm` or `git clean`
+# would delete it, and `git add .` would commit it.
+# QODER_AS_SUBAGENT_STATE_DIR = "C:\\Users\\you\\AppData\\Local\\qoder-as-subagent"
+
+# Pin an exact CLI build rather than resolving it from PATH and the install
+# location. Useful when more than one version is installed.
+# QODER_BIN = "C:\\Users\\you\\.qoder-cn\\bin\\qoderclicn\\qoderclicn.exe"
+
+# ---------------------------------------------------------------------------
+# Optional: pass a variable through to the CLI.
+#
+# Everything not on the server's allowlist is dropped, including proxy settings
+# and anything that selects a model or an endpoint. Name what you need here.
+# ---------------------------------------------------------------------------
+
+# [mcp_servers.qoder-as-subagent.env]
+# QODER_AS_SUBAGENT_PASSTHROUGH = "HTTPS_PROXY,NO_PROXY,QODERCN_MODEL"
+# HTTPS_PROXY = "http://proxy.internal:8080"
+
+# ---------------------------------------------------------------------------
+# Per-tool overrides, if `prompt` for everything proves too noisy.
+# ---------------------------------------------------------------------------
+
+# [mcp_servers.qoder-as-subagent.tools.qoder_status]
+# approval_mode = "auto"          # read-only polling
+#
+# [mcp_servers.qoder-as-subagent.tools.qoder_run]
+# approval_mode = "prompt"        # never automate this one
