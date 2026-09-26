@@ -73,7 +73,7 @@ function createServer(runner: Runner, store: JobStore): McpServer {
     {
       title: "Ping",
       description:
-        "Liveness check. Reports the server version and the workspace roots it will accept. Never spawns Claude Code.",
+        "Liveness check. Reports the server version and the workspace roots it will accept. Never spawns the Qoder CLI.",
       inputSchema: {},
       annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
     },

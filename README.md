@@ -142,3 +142,7 @@ See [SECURITY.md](SECURITY.md) for the reasoning.
 - **Command deny rules are not a security boundary** — they blunt a confused
   model, not a hostile one.
 - **Reads inside the workspace are unrestricted.**
+
+## License
+
+MIT — see [LICENSE](LICENSE).
