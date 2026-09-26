@@ -134,9 +134,16 @@ describe("buildQoderArgv", () => {
     expect(valueOf(consult, "--tools").split(",")).toEqual(["Read", "Grep", "Glob"]);
     expect(valueOf(execute, "--tools").split(",")).toContain("Write");
 
-    // camelCase is what Claude Code accepts and Qoder rejects.
+    // consult stays fail-closed; execute uses the classifier-backed mode,
+    // because "accept_edits" auto-approves the Edit/Write *tools* only and
+    // blocks shell commands outright — measured, and it made the tier useless
+    // for anything that has to run a build or a test.
     expect(valueOf(consult, "--permission-mode")).toBe("dont_ask");
-    expect(valueOf(execute, "--permission-mode")).toBe("accept_edits");
+    expect(valueOf(execute, "--permission-mode")).toBe("auto");
+
+    // snake_case is sent because it is the documented spelling. camelCase is an
+    // accepted alias, so this is a convention check rather than a correctness
+    // one — measured on 1.1.64, `acceptEdits` and `dontAsk` both work.
     expect(consult.join(" ")).not.toContain("dontAsk");
     expect(execute.join(" ")).not.toContain("acceptEdits");
   });

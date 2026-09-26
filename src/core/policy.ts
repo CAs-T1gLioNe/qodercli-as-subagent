@@ -38,13 +38,36 @@ export const TIER_TOOLS: Record<Tier, readonly string[]> = {
 };
 
 /**
- * `dont_ask` denies anything not already allowed, which is the fail-closed mode
- * for read-only work. `accept_edits` additionally auto-approves file edits and
- * a small set of filesystem commands inside the working directory.
+ * `dont_ask` denies anything not already allowed — the fail-closed mode, right
+ * for read-only work.
+ *
+ * `auto` is what makes the execute tier usable. Measured on 1.1.64, running the
+ * same command under each mode:
+ *
+ *   | mode           | write inside the workspace, via a shell command |
+ *   | accept_edits   | blocked — it auto-approves the Edit/Write *tools*, not shell |
+ *   | dont_ask       | blocked — anything needing approval is denied |
+ *   | auto           | **ran** — no prompt, and the action is inside the workspace |
+ *
+ * and for an action *outside* the workspace, `auto` still refuses — its denial
+ * names a classifier, with a reasoned explanation ("restricting file
+ * modifications to the workspace or explicitly trusted paths") rather than a
+ * rule match. So `auto` is not "approve everything": it approves what is in
+ * scope and hands the judgement calls to a reviewing model.
+ *
+ * The layering matters, and was verified: `--settings` deny rules are evaluated
+ * **first** and win. A rule blocking a command produced `tool_denial_kind:
+ * "permission-rule"` with `decision_reason_type: "rule"`, not `"classifier"`,
+ * and removing the rule let the same command through. The classifier only sees
+ * what the deterministic layers already allowed.
+ *
+ * The honest caveat: a classifier is a judgement layer, not a guarantee. It is
+ * a better default than failing closed for every shell command, but it is not a
+ * boundary the way `--tools` and the deny rules are.
  */
 export const TIER_PERMISSION_MODE: Record<Tier, string> = {
   consult: "dont_ask",
-  execute: "accept_edits",
+  execute: "auto",
 };
 
 /**

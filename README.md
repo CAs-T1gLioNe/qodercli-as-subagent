@@ -49,12 +49,22 @@ CLI flag:
 | Tier | Tools | Permission mode | Can |
 |---|---|---|---|
 | `consult` | `Read`, `Grep`, `Glob` | `dont_ask` | read and search; nothing that needs approval |
-| `execute` | `+ Edit`, `Write`, `Bash` | `accept_edits` | edit files in the workspace, plus a small set of filesystem commands |
+| `execute` | `+ Edit`, `Write`, `Bash` | `auto` | work inside the workspace, with a classifier reviewing anything risky |
 
-`execute` is narrower than it sounds. With nobody to answer a prompt, anything
-that would ask is denied — so `npm test`, `git commit` and `cargo build` all
-fail. Only file edits and `mkdir`/`touch`/`mv`/`cp`/`sed` inside the workspace
-proceed without asking.
+`auto` is what makes `execute` useful, and it is a *classifier-backed* mode, not
+a blanket approval. Nothing prompts; work inside the workspace proceeds; and an
+action that goes out of scope is handed to a reviewing model, which either
+allows it or blocks it with a stated reason. A write outside the workspace, for
+instance, comes back blocked as *"Auto mode: action blocked by classifier —
+restricting file modifications to the workspace or explicitly trusted paths"*.
+
+The layering is what makes this safe enough to default to: `--tools` decides
+which tools exist, `--settings` deny rules are deterministic and are evaluated
+**first**, and the classifier only sees what survives both. Measured — a denied
+command reports `tool_denial_kind: "permission-rule"`, not `"classifier"`.
+
+`consult` stays on `dont_ask` and therefore fails closed: it is for reading, and
+it does not get the classifier.
 
 ## Requirements
 

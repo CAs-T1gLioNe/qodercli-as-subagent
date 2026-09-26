@@ -105,8 +105,11 @@ export function buildQoderArgv(input: ArgvInput): readonly string[] {
   // own init event, so a wrong guess fails loudly instead of silently leaving
   // the session with every tool.
   argv.push(`--tools=${TIER_TOOLS[input.tier].join(",")}`);
-  // Values are snake_case on Qoder (`dont_ask`, `accept_edits`); Claude Code
-  // uses camelCase. Passing the camelCase spelling fails outright.
+  // Qoder documents snake_case as the canonical spelling and camelCase as an
+  // accepted alias (`dont_ask` ≡ `dontAsk`), and both were measured working.
+  // Snake_case is sent because it is the documented form, and the CLI reports
+  // the camelCase spelling back on the init event either way — so nothing
+  // downstream should compare against the value sent here.
   argv.push(`--permission-mode=${TIER_PERMISSION_MODE[input.tier]}`);
   argv.push(`--settings=${input.settingsPath}`);
 

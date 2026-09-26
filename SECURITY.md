@@ -101,9 +101,44 @@ turn:
 | `--setting-sources=user` | Excludes a workspace's settings files. Unverified — see above. |
 | `--strict-mcp-config` + empty `--mcp-config` | MCP servers come from nowhere. |
 | `--tools=<tier set>` | Restricts which built-in tools exist at all. |
-| `--permission-mode=<dont_ask\|accept_edits>` | The tier's baseline. |
+| `--permission-mode=<dont_ask\|auto>` | The tier's baseline. `auto` adds a reviewing classifier; see below. |
 | `--settings=<generated>` | Deny rules, written fresh per run and deleted after. |
 | `--disallowed-tools …` | Last, because it is variadic. The only channel a user's own settings cannot re-allow. |
+
+### The `auto` classifier, and what it is not
+
+The `execute` tier runs under `auto` rather than `accept_edits`, because the
+latter is close to useless for a subagent: measured on 1.1.64, `accept_edits`
+auto-approves the Edit/Write *tools* but blocks shell commands outright, so a
+tier that cannot run a build or a test is not an implementation tier.
+
+| mode | shell command writing inside the workspace |
+|---|---|
+| `accept_edits` | blocked |
+| `dont_ask` | blocked |
+| `auto` | **ran** |
+
+`auto` prompts for nothing, allows work inside the workspace, and routes
+everything else to a reviewing model. That model makes judgement calls and
+explains them — an out-of-workspace write came back as *"Auto mode: action
+blocked by classifier — restricting file modifications to the workspace or
+explicitly trusted paths"*.
+
+**It is a judgement layer, not a boundary.** It sits behind controls that are
+deterministic, which is what makes defaulting to it defensible:
+
+1. `--tools` decides which tools exist at all.
+2. `--settings` deny rules are evaluated **first** and win. Verified: a denied
+   command reports `tool_denial_kind: "permission-rule"` and
+   `decision_reason_type: "rule"`, not `"classifier"`, and removing the rule
+   let the same command through.
+3. The classifier sees only what survives both.
+
+So the honest statement is: the classifier *adds* oversight that `accept_edits`
+did not have, and it is the reason a shell command can run unattended — but
+nothing here should be described as a guarantee that a classifier cannot be
+talked around. `consult` does not get it: it stays on `dont_ask` and fails
+closed, because reading is what it is for.
 
 Plus, outside the CLI:
 
